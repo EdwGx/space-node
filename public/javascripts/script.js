@@ -5,6 +5,7 @@ var prompter = document.getElementById("prompter");
 var state = "connecting";
 
 var pressedKey = 0;
+var lastPingTest = 0;
 
 var Engine = {
   ships: {},
@@ -93,7 +94,16 @@ socket.on('join_response', function(data){
       document.body.setAttribute('data-state', 'wait');
       prompter.innerHTML = "Game is currently running";
     }
+    lastPingTest = Date.now();
+    socket.emit('ping-test');
   }
+});
+
+socket.on('ping-test', function(time) {
+  var date_now = Date.now();
+  var delta = date_now - lastPingTest;
+  var server_offset = time - (date_now - delta/2.0);
+  console.log(['Ping:', String(delta), ' ms; Server Offset: ', String(server_offset), ' ms'].join(''));
 });
 
 socket.on('ready', function(){

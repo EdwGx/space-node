@@ -69,6 +69,10 @@ class GameManger {
         "joined": false
       });
     }
+
+    socket.on('ping-test', function(data){
+      socket.emit('ping-test', Date.now());
+    });
   }
 
   addShip(ship) {
