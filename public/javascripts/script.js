@@ -13,6 +13,7 @@ var Engine = {
   lastTimestamp: 0,
   size: [0,0],
   loopInterval: 100,
+  skipNextLoop: false,
 
   addShips: function(ships) {
     for (var index in ships) {
@@ -22,14 +23,24 @@ var Engine = {
   },
 
   updateShips: function(timestamp, ships) {
-    var delta = timestamp - ( this.lastTimestamp - this.startTimestamp );
-    this.lastTimestamp = timestamp + this.startTimestamp;
+    var date_now = Date.now();
+    var delta_server = date_now - (this.startTimestamp + timestamp);
+    var delta_client = date_now - this.lastTimestamp;
+    this.lastTimestamp = date_now;
 
-    this.calcuateShips(delta);
+    updatedShips = [];
     for (var index in ships) {
       var ship = ships[index];
-      this.ships[ship.color] = ship;
+      this.ships[ship.color] = this.calcShip(ship, delta_server);
+      updatedShips.push(ship.color);
     }
+
+    this.eachShips(function(ship){
+      if (!(ship.color in updatedShips)) {
+        this.calcShip(ship, delta_client);
+      }
+      this.renderShip(ship);
+    });
   },
 
   loop: function() {
@@ -41,30 +52,30 @@ var Engine = {
     this.lastTimestamp += delta;
 
     this.eachShips(function(ship){
-      ship.x += ship.dx * delta;
-      ship.y += ship.dy * delta;
-
-      ship.x = Math.max(Math.min(ship.x, this.size[0] - ship.size[0]), 0);
-      ship.y = Math.max(Math.min(ship.y, this.size[1] - ship.size[1]), 0);
-
-      $('#ship_' + ship.color).css({
-        "left": ship.x,
-        "top": ship.y,
-      });
+      this.calcShip(ship, delta);
+      this.renderShip(ship);
     });
   },
 
-  calcuateShips: function(delta) {
-    this.eachShips(function(ship){
-      ship.x += ship.dx * delta;
-      ship.y += ship.dy * delta;
+  calcShip: function(ship, delta) {
+    ship.x += ship.dx * delta;
+    ship.y += ship.dy * delta;
 
-      ship.x = Math.max(Math.min(ship.x, this.size[0] - ship.size[0]), 0);
-      ship.y = Math.max(Math.min(ship.y, this.size[1] - ship.size[1]), 0);
-    });
+    ship.x = Math.max(Math.min(ship.x, this.size[0] - ship.size[0]), 0);
+    ship.y = Math.max(Math.min(ship.y, this.size[1] - ship.size[1]), 0);
+
+    return ship;
   },
 
-  eachShips(callback) {
+  renderShip: function(ship) {
+    $('#ship_' + ship.color).css({
+      "left": ship.x,
+      "top": ship.y,
+    });
+    return ship;
+  },
+
+  eachShips: function(callback) {
     for (var shipColor in this.ships) {
       callback.call(this, this.ships[shipColor]);
     }
@@ -75,6 +86,7 @@ socket.on('join_response', function(data){
   if (state == "connecting") {
     if (data.joined) {
       document.body.setAttribute('data-state', 'wait-players');
+      prompter.innerHTML = "Waiting for more players";
       Engine.size = data.size;
       Engine.loopInterval = data.interval;
     } else {
