@@ -1,0 +1,46 @@
+body {
+  background-color: black;
+  color: white;
+  font-family: "Courier New", Courier, monospace; }
+
+#screen, #prompter {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); }
+
+#screen {
+  width: 600px;
+  height: 500px;
+  border: 1px solid white;
+  border-radius: 5px;
+  overflow: hidden;
+  display: none; }
+
+#prompter {
+  font-size: 50px;
+  display: none; }
+
+body[data-state="connecting"] #prompter {
+  display: block; }
+
+body[data-state="active"] #screen {
+  display: block; }
+
+body[data-state="wait"] #prompter {
+  display: block; }
+
+body[data-state="ready"] #prompter {
+  display: block; }
+
+.space-ship {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 20px solid green; }
+  .space-ship[data-color="b"] {
+    border-bottom: 20px solid red; }
+
+/*# sourceMappingURL=style.css.map */
